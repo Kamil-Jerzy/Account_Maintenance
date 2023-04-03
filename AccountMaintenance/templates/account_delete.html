@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Account change ONLINE form</title>
+</head>
+<body>
+
+  <h1/>Account delete ONLINE form</h1>
+
+    <form action="" method="post">
+    {% csrf_token %}
+
+    <p><b>Country Code: </b>{{ delete_form.country_code }}</p>
+    <p><b>Account Number: </b>{{ delete_form.account_number }}</p>
+    <p><b>Account Name: </b>{{ delete_form.account_name }}</p>
+
+        <input type="submit" value="Submit">
+
+    </form>
+
+</body>
+
+</body>
+</html>

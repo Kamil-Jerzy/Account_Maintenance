@@ -1,0 +1,45 @@
+
+
+
+
+{% extends 'base.html' %}
+
+{% block content %}
+
+  <h2>Add-Account Template</h2>
+
+  <form action="" method="post">
+    {% csrf_token %}
+<!--        <label>-->
+<!--          Maintenance Type:-->
+<!--          <input type="text"-->
+<!--                 name="maintenance_type">-->
+<!--        </label>-->
+    <p><b>Maintenance Code: </b>A</p>
+    <p><b>Country Code: </b>{{ add_form.country_code }}</p>
+    <p><b>Account Number: </b>{{ add_form.account_number }}</p>
+    <p><b>Account Name: </b>{{ add_form.account_name }}</p>
+    <p><b>Currency: </b>{{ add_form.currency }}</p>
+
+
+
+    <input type="submit" value="Submit">
+  </form>
+
+
+
+<!--    <h2>Account Information</h2>-->
+<!--    <p><b>Maintenance Code: </b>{{ maintenance_type }}</p>-->
+<!--    <p><b>Nazwisko: </b>{{ student.last_name }}</p>-->
+<!--    <p><b>Rok urodzenia: </b>{{ student.year_of_birth }}</p>-->
+<!--    <p><b>Klasa: </b>{{ student.get_school_class_display }}</p>-->
+
+<!--    <h2>Przedmioty</h2>-->
+<!--    <ul>-->
+<!--    {% for subject in school_subjects %}-->
+<!--        <li>-->
+<!--            <a href={% url 'student-grade' student_id=student.id subject_id=subject.id %}>{{ subject.name }}</a>-->
+<!--        </li>-->
+<!--    {% endfor %}-->
+<!--    </ul>-->
+{% endblock %}

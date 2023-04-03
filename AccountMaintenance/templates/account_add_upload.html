@@ -1,0 +1,48 @@
+
+
+
+
+{% extends 'base.html' %}
+
+{% block content %}
+<head>
+    <meta charset="UTF-8">
+    <title>Account add ONLINE form</title>
+</head>
+<body>
+
+  <h1/>Upload Account Details - ADD Account Form</h1>
+
+
+  <form method="post" action="{% url 'account_add_upload' %}">
+  {% csrf_token %}
+    <p><b>Maintenance Code: </b></p>
+    <input type="text" name="maintenance_type" value="{{ maintenance_type }}" readonly>
+    <p><b>Country Code: </b></p>
+    <input type="text" name="country_code" value="{{ country_code }}">
+    <p><b>Account Number: </b></p>
+    <input type="text" name="account_number" value="{{ account_number }}">
+    <p><b>Account Name: </b></p>
+    <input type="text" name="account_name" value="{{ account_name }}">
+    <p><b>Currency: </b></p>
+    <input type="text" name="currency" value="{{ currency }}">
+    <p><b>Keep Subsidiary Account: </b></p>
+      <label for="id_keep_subsidiary">Keep Subsidiary:</label>
+      <select id="id_keep_subsidiary" name="keep_subsidiary">
+        <option value="Y">Yes</option>
+        <option value="N">No</option>
+      </select>
+    <p><b>Requestor: </b></p>
+    <input type="text" name="requestor" value="Fill in manually">
+    <p><b>Approver: </b></p>
+    <input type="text" name="approver" value="Fill in manually">
+    <p><b>Additional info: </b></p>
+    <input type="text" name="additional_info" value="">
+    <p><b>Created by: </b></p>
+    <input type="text" name="created_by" value="Fill in manually">
+    <p></p>
+    <button type="submit">Submit</button>
+  </form>
+
+</body>
+{% endblock %}

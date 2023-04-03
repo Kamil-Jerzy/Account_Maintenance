@@ -1,0 +1,15 @@
+{% load static %}
+
+<!doctype html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>{% block title %}GL maintenance{% endblock %}</title>
+    </head>
+    <body>
+        <div>
+        <!--     <img src="{% static 'logo.png' %}" alt="School logo"> -->
+        </div>
+        {% block content %}{% endblock %}
+    </body>
+</html>

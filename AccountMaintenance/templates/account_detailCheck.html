@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+    <h2>Check account details:</h2>
+
+      <ol>
+            <p>Maintenance Type: {{ maintenance_type }}</p>
+            <p>Country Code: {{ country_code }}</p>
+            <p>Account Number: {{ account_number }}</p>
+            <p>Account Name: {{ account_name }}</p>
+            <p>Currency: {{ currency }}</p>
+      </ol>
+
+    <h2>Confirmed account details:</h2>
+
+
+<form method="post" action="">
+       {% csrf_token %}
+<select id="details_confirmed" name="details_confirmed" required>
+  <option value="yes">Yes</option>
+  <option value="no">No</option>
+</select>
+    <input type="submit" value="Wyślij">
+
+</form>
+
+{% endblock %}
