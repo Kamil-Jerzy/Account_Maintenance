@@ -1,17 +1,13 @@
 from django.shortcuts import render, get_object_or_404, redirect, HttpResponse
 from django.views import View
-import openpyxl
-from django.http import HttpResponseRedirect, HttpResponse
-from django.urls import reverse
 from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
-from django.contrib.auth.decorators import login_required
-
-import os
-from datetime import datetime
-
 from .forms import WelcomeForm, AddAccountForm, ChangeAccountForm, DeleteAccountForm
-from .models import Account, ExcelFile, Log, AccountChart, Currency
+from .models import ExcelFile, Log, Currency, AccountChart, AccountOptions
+from datetime import datetime
+import openpyxl
+import os
+
 
 class WelcomeView(View):
     def get(self, request):
@@ -31,61 +27,6 @@ class WelcomeView(View):
                 return redirect('account_delete')
         return HttpResponse("Error")
 
-
-# class AddAccountView(View):
-#     def get(self, request):
-#         add_form = AddAccountForm()
-#         context = {'add_form': add_form, }
-#         return render(request, 'account_add.html', context)
-#
-#     def post(self, request):
-#         add_form = AddAccountForm(request.POST)
-#         if add_form.is_valid():
-#             maintenance_type = 'A'
-#             country_code = add_form.cleaned_data['country_code']
-#             account_number = add_form.cleaned_data['account_number']
-#             account_name = add_form.cleaned_data['account_name']
-#             currency = add_form.cleaned_data['currency']
-#             keep_subsidiary = add_form.cleaned_data['keep_subsidiary']
-#             requestor = add_form.cleaned_data['requestor']
-#             approver = add_form.cleaned_data['approver']
-#             additional_info = add_form.cleaned_data['additional_info']
-#             created_by = add_form.cleaned_data['created_by']
-#
-#             # Check if account_number exists in Account model
-#             if Account.objects.filter(account_number=account_number).exists():
-#                 return HttpResponse(f'Account {account_number} already exists. Check records')
-#
-#             # Get current date
-#             current_date = datetime.now().date()
-#
-#             # Save details to Account model
-#             account = Account(
-#                 country_code=country_code,
-#                 account_number=account_number,
-#                 account_name=account_name,
-#                 currency=currency,
-#                 keep_subsidiary=keep_subsidiary
-#             )
-#             account.save()
-#
-#             # Save details to Log model
-#             log = Log(
-#                 maintenance_date=current_date,
-#                 country_code=country_code,
-#                 account_number=account_number,
-#                 account_name=account_name,
-#                 currency=currency,
-#                 maintenance_type=maintenance_type,
-#                 requestor=requestor,
-#                 approver=approver,
-#                 additional_info=additional_info,
-#                 created_by=created_by
-#             )
-#             log.save()
-#
-#             return HttpResponse(f'Account {country_code}: {account_number} / {account_name} has been created')
-#         return HttpResponse("End at CreateAccountView")
 
 class AddAccountView(View):
     def get(self, request):
@@ -139,8 +80,25 @@ class AddAccountView(View):
             )
             log.save()
 
+            # Check balance option and balance mapping, notify user on account number and balance check
+            account_options = AccountOptions.objects.filter(account_serial=str(account_number)[:5])
+            if len(account_options) > 0:
+                account_option = account_options[0]
+                if account_option.balance_option == 1:
+                    if account_option.mapping_asset and account_option.mapping_liab:
+                        return HttpResponse(f'Account {country_code}: {account_number} / {account_name} has been created'
+                                            '<p> BUT mapping is not compliant with balance option'
+                                            '<p> CHECK and change balance option if necessary')
+                    return HttpResponse(f'Account {country_code}: {account_number} / {account_name} has been created')
+                if account_option.balance_option == 2:
+                    if account_option.mapping_liab and account_option.mapping_asset:
+                        return HttpResponse(f'Account {country_code}: {account_number} / {account_name} has been created'
+                                            '<p> BUT mapping is not compliant with balance option'
+                                            '<p> CHECK and change balance option if necessary')
+                    return HttpResponse(f'Account {country_code}: {account_number} / {account_name} has been created')
             return HttpResponse(f'Account {country_code}: {account_number} / {account_name} has been created')
         return HttpResponse("End at CreateAccountView")
+
 
 class ChangeAccountView(View):
     def get(self, request):
@@ -343,9 +301,24 @@ def account_add_upload(request):
             # Delete the original file from the database and disk
             last_file.delete()
 
+        # Check balance option and balance mapping, notify user on account number and balance check
+        account_options = AccountOptions.objects.filter(account_serial=str(account_number)[:5])
+        if len(account_options) > 0:
+            account_option = account_options[0]
+            if account_option.balance_option == 1:
+                if account_option.mapping_asset and account_option.mapping_liab:
+                    return HttpResponse(f'Account {country_code}: {account_number} / {account_name} has been created'
+                                        '<p> BUT mapping is not compliant with balance option'
+                                        '<p> CHECK and change balance option if necessary')
+                return HttpResponse(f'Account {country_code}: {account_number} / {account_name} has been created')
+            if account_option.balance_option == 2:
+                if account_option.mapping_liab and account_option.mapping_asset:
+                    return HttpResponse(f'Account {country_code}: {account_number} / {account_name} has been created'
+                                        '<p> BUT mapping is not compliant with balance option'
+                                        '<p> CHECK and change balance option if necessary')
+                return HttpResponse(f'Account {country_code}: {account_number} / {account_name} has been created')
         return HttpResponse(f'Account {country_code}: {account_number} / {account_name} has been created')
-    else:
-        return render(request, 'upload_excel.html')
+    return HttpResponse("End at CreateAccountView")
 
 
 def account_change_upload(request):
@@ -398,7 +371,6 @@ def account_change_upload(request):
             path = default_storage.save(os.path.join('excel_files', filename), ContentFile(last_file.file.read()))
             # Delete the original file from the database and disk
             last_file.delete()
-
 
         return HttpResponse(f'Account {country_code}: {account_number} name has been changed to {new_account_name}')
     else:
@@ -463,7 +435,6 @@ def account_delete_upload(request):
         return HttpResponse(f'Account {country_code}: {account_number} / {account_name} has been deleted')
     else:
         return render(request, 'account_delete_upload.html')
-
 
 
 def account_list(request):
