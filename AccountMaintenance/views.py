@@ -5,6 +5,8 @@ from django.http import HttpResponseRedirect, HttpResponse
 from django.urls import reverse
 from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
+from django.contrib.auth.decorators import login_required
+
 import os
 from datetime import datetime
 
@@ -44,24 +46,44 @@ class AddAccountView(View):
             account_number = add_form.cleaned_data['account_number']
             account_name = add_form.cleaned_data['account_name']
             currency = add_form.cleaned_data['currency']
+            keep_subsidiary = add_form.cleaned_data['keep_subsidiary']
+            requestor = add_form.cleaned_data['requestor']
+            approver = add_form.cleaned_data['approver']
+            additional_info = add_form.cleaned_data['additional_info']
+            created_by = add_form.cleaned_data['created_by']
 
+            # Check if account_number exists in Account model
+            if Account.objects.filter(account_number=account_number).exists():
+                return HttpResponse(f'Account {account_number} already exists. Check records')
+
+            # Get current date
+            current_date = datetime.now().date()
+
+            # Save details to Account model
             account = Account(
                 country_code=country_code,
                 account_number=account_number,
                 account_name=account_name,
-                currency=currency
+                currency=currency,
+                keep_subsidiary=keep_subsidiary
             )
             account.save()
 
-            context = {
-                'maintenance_type': maintenance_type,
-                'country_code': country_code,
-                'account_number': account_number,
-                'account_name': account_name,
-                'currency': currency
-            }
+            # Save details to Log model
+            log = Log(
+                maintenance_date=current_date,
+                country_code=country_code,
+                account_number=account_number,
+                account_name=account_name,
+                currency=currency,
+                maintenance_type=maintenance_type,
+                requestor=requestor,
+                approver=approver,
+                additional_info=additional_info,
+                created_by=created_by
+            )
+            log.save()
 
-            # return render(request, 'account_add.html', context)
             return HttpResponse(f'Account {country_code}: {account_number} / {account_name} has been created')
         return HttpResponse("End at CreateAccountView")
 
@@ -79,21 +101,42 @@ class ChangeAccountView(View):
             country_code = change_form.cleaned_data['country_code']
             account_number = change_form.cleaned_data['account_number']
             new_account_name = change_form.cleaned_data['account_name']
+            requestor = change_form.cleaned_data['requestor']
+            approver = change_form.cleaned_data['approver']
+            additional_info = change_form.cleaned_data['additional_info']
+            created_by = change_form.cleaned_data['created_by']
 
+            # Get current date
+            current_date = datetime.now().date()
+
+            # Checking if account is set up in Account model
             try:
                 account = Account.objects.get(country_code=country_code, account_number=account_number)
             except Account.DoesNotExist:
                 return HttpResponse('Account does not exist')
 
+            # If account is set up change Account name and save
             account.account_name = new_account_name
             account.save()
 
-            context = {
-                'maintenance_type': 'C',
-                'account_number': account_number,
-                'account_name': new_account_name
-            }
-            # return render(request, 'account_change.html', context)
+            # Get Account instance
+            account = get_object_or_404(Account, country_code=country_code, account_number=account_number)
+
+            # Save details to Log model
+            log = Log(
+                maintenance_date=current_date,
+                country_code=country_code,
+                account_number=account_number,
+                account_name=new_account_name,
+                currency=account.currency,
+                maintenance_type=maintenance_type,
+                requestor=requestor,
+                approver=approver,
+                additional_info=additional_info,
+                created_by=created_by
+            )
+            log.save()
+
             return HttpResponse(f'Name of account# {account_number} has been changed to {new_account_name}')
         return HttpResponse('Returning ChangeView')
 
@@ -111,22 +154,49 @@ class DeleteAccountView(View):
             country_code = delete_form.cleaned_data['country_code']
             account_number = delete_form.cleaned_data['account_number']
             account_name = delete_form.cleaned_data['account_name']
+            requestor = delete_form.cleaned_data['requestor']
+            approver = delete_form.cleaned_data['approver']
+            additional_info = delete_form.cleaned_data['additional_info']
+            created_by = delete_form.cleaned_data['created_by']
 
+            # Get Account instance
+            account = get_object_or_404(Account, country_code=country_code, account_number=account_number)
+
+            # Checking if account is set up in Account model
             try:
                 account = Account.objects.get(country_code=country_code, account_number=account_number)
+                keep_subsidiary = account.keep_subsidiary
+                # Checking Keep Subsidiary value
+                if keep_subsidiary == 'Y':
+                    return HttpResponse('Account has Keep Subsidiary set to Y, do the following: <p>'
+                                        '1) check account balances on subsidiary level <p>'
+                                        '2) with 0.00 balances, change Keep Subsidiary parameter to N <p>'
+                                        '3) resubmit request')
             except Account.DoesNotExist:
                 return HttpResponse('Account does not exist')
-
             account.delete()
 
-            context = {
-                'maintenance_type': 'D',
-                'account_number': account_number,
-                'account_name': account_name
-            }
-            # return render(request, 'account_change.html', context)
-            return HttpResponse(f'The account# {account_number} has been deleted')
-        return HttpResponse('Returning DeleteView')
+            # Get current date
+            current_date = datetime.now().date()
+
+            # Save details to Log model
+            log = Log(
+                maintenance_date=current_date,
+                country_code=country_code,
+                account_number=account_number,
+                account_name=account_name,
+                currency=account.currency,
+                maintenance_type=maintenance_type,
+                requestor=requestor,
+                approver=approver,
+                additional_info=additional_info,
+                created_by=created_by
+            )
+            log.save()
+
+            return HttpResponse(f'Account {country_code}: {account_number} / {account_name} has been deleted')
+        else:
+            return render(request, 'account_delete_upload.html')
 
 
 def upload_excel(request):
@@ -140,10 +210,6 @@ def upload_excel(request):
         account_number = worksheet['B3'].value
         account_name = worksheet['B4'].value
         currency = worksheet['B5'].value
-
-        # # Save uploaded file to ExcelFile model
-        # excel_file_model = ExcelFile(file=excel_file)
-        # excel_file_model.save()
 
         context = {
             'maintenance_type': maintenance_type,
@@ -176,6 +242,10 @@ def account_add_upload(request):
         approver = request.POST['approver']
         additional_info = request.POST['additional_info']
         created_by = request.POST['created_by']
+
+        # Check if account_number exists in Account model
+        if Account.objects.filter(account_number=account_number).exists():
+            return HttpResponse(f'Account {account_number} already exists. Check records')
 
         # Get current date
         current_date = datetime.now().date()
@@ -271,14 +341,7 @@ def account_change_upload(request):
             # Delete the original file from the database and disk
             last_file.delete()
 
-        # account = Account(
-        #     country_code=country_code,
-        #     account_number=account_number,
-        #     account_name=account_name,
-        #     currency=currency
-        # )
-        # account.save()
-        # return redirect('account_detail', pk=account.pk)
+
         return HttpResponse(f'Account {country_code}: {account_number} name has been changed to {new_account_name}')
     else:
         return render(request, 'account_change_upload.html')
@@ -342,3 +405,16 @@ def account_delete_upload(request):
         return HttpResponse(f'Account {country_code}: {account_number} / {account_name} has been deleted')
     else:
         return render(request, 'account_delete_upload.html')
+
+
+
+def account_list(request):
+    # User logged in
+    if request.user.is_authenticated:
+        accounts = Account.objects.all()
+        context = {'accounts': accounts}
+        return render(request, 'account_list.html', context)
+    # User not logged in
+    else:
+        context = {'message': 'Log in thru Admin Panel to display the list of Accounts'}
+    return render(request, 'account_list.html', context)

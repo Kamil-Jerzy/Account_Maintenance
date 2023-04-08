@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+
+{% load static %}
+
+{% block head %}
+  <link rel="stylesheet" type="text/css" href="{% static 'styles.css' %}">
+{% endblock %}
+
+{% block content %}
+  {% if user.is_authenticated %}
+    <h1>Account List</h1>
+    <table class="account-list">
+      <thead>
+        <tr>
+          <th>Country Code</th>
+          <th>Account Number</th>
+          <th>Account Name</th>
+          <th>Currency</th>
+          <th>Keep Subsidiary</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for account in accounts %}
+          <tr>
+            <td>{{ account.country_code }}</td>
+            <td>{{ account.account_number }}</td>
+            <td>{{ account.account_name }}</td>
+            <td>{{ account.currency }}</td>
+            <td>{{ account.keep_subsidiary }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+   <p>{{ message }}</p>
+  {% endif %}
+{% endblock %}

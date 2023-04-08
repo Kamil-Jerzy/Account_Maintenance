@@ -9,7 +9,7 @@ class Maintenance(models.Model):
 
 
 class Currency(models.Model):
-    currency = models.CharField(max_length=3)
+    currency = models.CharField(max_length=3, unique=True)
     currency_name = models.CharField(max_length=32)
 
     def __str__(self):
@@ -18,13 +18,12 @@ class Currency(models.Model):
 
 class Account(models.Model):
     country_code = models.CharField(max_length=2)
-    maintenance_type = models.CharField(max_length=1)
+    # maintenance_type = models.CharField(max_length=1)
     account_number = models.IntegerField()
     account_name = models.CharField(max_length=32)
-    # currency = models.ForeignKey('Currency', on_delete=models.CASCADE)
+    # currency = models.ForeignKey(Currency, on_delete=models.CASCADE)
     currency = models.CharField(max_length=3)
     keep_subsidiary = models.CharField(max_length=1, default='N')
-
 
 class ExcelFile(models.Model):
     file = models.FileField(upload_to='excel_files')

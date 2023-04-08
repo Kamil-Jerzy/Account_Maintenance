@@ -9,26 +9,20 @@
   <h1/>Account change ONLINE form</h1>
 
 
-  <form method="post" action="{% url 'account_add' %}">
+  <form method="post" action="{% url 'account_change' %}">
   {% csrf_token %}
-  <input type="text" name="maintenance_type" value="{{ maintenance_type }}">
-  <input type="text" name="country_code" value="{{ country_code }}">
-  <input type="text" name="account_number" value="{{ account_number }}">
-  <input type="text" name="account_name" value="{{ account_name }}">
-  <input type="text" name="currency" value="{{ currency }}">
+
+    <p><b>Maintenance Code: </b>C</p>
+    <p><b>Country Code: </b>{{ change_form.country_code }}</p>
+    <p><b>Account Number: </b>{{ change_form.account_number }}</p>
+    <p><b>Account Name: </b>{{ change_form.account_name }}</p>
+    <p><b>Requestor: </b>{{ change_form.requestor }}</p>
+    <p><b>Approver: </b>{{ change_form.approver }}</p>
+    <p><b>Additional_info: </b>{{ change_form.additional_info }}</p>
+    <p><b>Created_by: </b>{{ change_form.created_by }}</p>
+
   <button type="submit">Submit</button>
 </form>
-
-<!--    <form action="" method="post">-->
-<!--    {% csrf_token %}-->
-
-<!--    <p><b>Country Code: </b>{{ change_form.country_code }}</p>-->
-<!--    <p><b>Account Number: </b>{{ change_form.account_number }}</p>-->
-<!--    <p><b>Account Name: </b>{{ change_form.account_name }}</p>-->
-
-<!--        <input type="submit" value="Submit">-->
-
-<!--    </form>-->
 
 </body>
 

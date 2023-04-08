@@ -14,6 +14,10 @@ MAINT_TYPE = (
     ('D', 'Delete'),
 )
 
+KEEP_SUBS = (
+    ('Y', 'Yes'),
+    ('N', 'No'),
+)
 class WelcomeForm(forms.Form):
     maintenance_type = forms.ChoiceField(label='Maintenance Type',
                                          choices=MAINT_TYPE,
@@ -36,17 +40,27 @@ class AddAccountForm(forms.Form):
     account_name = forms.CharField(label="Account Name", max_length=32)
     #currency = forms.CharField(label="Currency", max_length=3)
     currency = forms.ModelChoiceField(label="Currency", queryset=Currency.objects.all())
+    keep_subsidiary = forms.ChoiceField(choices=KEEP_SUBS, widget=forms.RadioSelect)
+    requestor = forms.CharField(label="Requestor", max_length=32)
+    approver = forms.CharField(label="Approver", max_length=32)
+    additional_info = forms.CharField(label="Additional_info", max_length=64)
+    created_by = forms.CharField(label="Created_by", max_length=64)
 
-    # account_branch = forms.IntegerField(label='Account Branch')
-    # account_serial = forms.IntegerField(label='Account Serial')
-    # account_suffix = forms.IntegerField(label='Account Suffix')
 
 class ChangeAccountForm(forms.Form):
     country_code = forms.ChoiceField(choices=COUNTRY, widget=forms.RadioSelect)
     account_number = forms.IntegerField(label='Account Number')
     account_name = forms.CharField(label="Account Name", max_length=32)
+    requestor = forms.CharField(label="Requestor", max_length=32)
+    approver = forms.CharField(label="Approver", max_length=32)
+    additional_info = forms.CharField(label="Additional_info", max_length=64)
+    created_by = forms.CharField(label="Created_by", max_length=64)
 
 class DeleteAccountForm(forms.Form):
     country_code = forms.ChoiceField(choices=COUNTRY, widget=forms.RadioSelect)
     account_number = forms.IntegerField(label='Account Number')
     account_name = forms.CharField(label="Account Name", max_length=32)
+    requestor = forms.CharField(label="Requestor", max_length=32)
+    approver = forms.CharField(label="Approver", max_length=32)
+    additional_info = forms.CharField(label="Additional_info", max_length=64)
+    created_by = forms.CharField(label="Created_by", max_length=64)

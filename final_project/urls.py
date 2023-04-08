@@ -19,7 +19,7 @@ from django.conf import settings
 from django.conf.urls.static import static
 
 from AccountMaintenance.views import WelcomeView, AddAccountView, DeleteAccountView, ChangeAccountView
-from AccountMaintenance.views import upload_excel, account_add_upload, account_change_upload, account_delete_upload
+from AccountMaintenance.views import upload_excel, account_add_upload, account_change_upload, account_delete_upload, account_list
 
 
 urlpatterns = [
@@ -31,5 +31,7 @@ urlpatterns = [
     path('upload/', upload_excel, name="upload_excel"),
     path('upload-add/', account_add_upload, name='account_add_upload'),
     path('upload-change/', account_change_upload, name='account_change_upload'),
-    path('upload-delete/', account_delete_upload, name='account_delete_upload')
-] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+    path('upload-delete/', account_delete_upload, name='account_delete_upload'),
+    path('accounts/', account_list, name='account_list'),
+]
+# ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
