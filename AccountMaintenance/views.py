@@ -11,7 +11,7 @@ import os
 from datetime import datetime
 
 from .forms import WelcomeForm, AddAccountForm, ChangeAccountForm, DeleteAccountForm
-from .models import Account, ExcelFile, Log
+from .models import Account, ExcelFile, Log, AccountChart, Currency
 
 class WelcomeView(View):
     def get(self, request):
@@ -31,6 +31,61 @@ class WelcomeView(View):
                 return redirect('account_delete')
         return HttpResponse("Error")
 
+
+# class AddAccountView(View):
+#     def get(self, request):
+#         add_form = AddAccountForm()
+#         context = {'add_form': add_form, }
+#         return render(request, 'account_add.html', context)
+#
+#     def post(self, request):
+#         add_form = AddAccountForm(request.POST)
+#         if add_form.is_valid():
+#             maintenance_type = 'A'
+#             country_code = add_form.cleaned_data['country_code']
+#             account_number = add_form.cleaned_data['account_number']
+#             account_name = add_form.cleaned_data['account_name']
+#             currency = add_form.cleaned_data['currency']
+#             keep_subsidiary = add_form.cleaned_data['keep_subsidiary']
+#             requestor = add_form.cleaned_data['requestor']
+#             approver = add_form.cleaned_data['approver']
+#             additional_info = add_form.cleaned_data['additional_info']
+#             created_by = add_form.cleaned_data['created_by']
+#
+#             # Check if account_number exists in Account model
+#             if Account.objects.filter(account_number=account_number).exists():
+#                 return HttpResponse(f'Account {account_number} already exists. Check records')
+#
+#             # Get current date
+#             current_date = datetime.now().date()
+#
+#             # Save details to Account model
+#             account = Account(
+#                 country_code=country_code,
+#                 account_number=account_number,
+#                 account_name=account_name,
+#                 currency=currency,
+#                 keep_subsidiary=keep_subsidiary
+#             )
+#             account.save()
+#
+#             # Save details to Log model
+#             log = Log(
+#                 maintenance_date=current_date,
+#                 country_code=country_code,
+#                 account_number=account_number,
+#                 account_name=account_name,
+#                 currency=currency,
+#                 maintenance_type=maintenance_type,
+#                 requestor=requestor,
+#                 approver=approver,
+#                 additional_info=additional_info,
+#                 created_by=created_by
+#             )
+#             log.save()
+#
+#             return HttpResponse(f'Account {country_code}: {account_number} / {account_name} has been created')
+#         return HttpResponse("End at CreateAccountView")
 
 class AddAccountView(View):
     def get(self, request):
@@ -53,14 +108,14 @@ class AddAccountView(View):
             created_by = add_form.cleaned_data['created_by']
 
             # Check if account_number exists in Account model
-            if Account.objects.filter(account_number=account_number).exists():
+            if AccountChart.objects.filter(account_number=account_number).exists():
                 return HttpResponse(f'Account {account_number} already exists. Check records')
 
             # Get current date
             current_date = datetime.now().date()
 
             # Save details to Account model
-            account = Account(
+            account = AccountChart(
                 country_code=country_code,
                 account_number=account_number,
                 account_name=account_name,
@@ -87,7 +142,6 @@ class AddAccountView(View):
             return HttpResponse(f'Account {country_code}: {account_number} / {account_name} has been created')
         return HttpResponse("End at CreateAccountView")
 
-
 class ChangeAccountView(View):
     def get(self, request):
         change_form = ChangeAccountForm()
@@ -111,16 +165,17 @@ class ChangeAccountView(View):
 
             # Checking if account is set up in Account model
             try:
-                account = Account.objects.get(country_code=country_code, account_number=account_number)
-            except Account.DoesNotExist:
+                account = AccountChart.objects.get(country_code=country_code, account_number=account_number)
+            except AccountChart.DoesNotExist:
                 return HttpResponse('Account does not exist')
+
 
             # If account is set up change Account name and save
             account.account_name = new_account_name
             account.save()
 
             # Get Account instance
-            account = get_object_or_404(Account, country_code=country_code, account_number=account_number)
+            account = get_object_or_404(AccountChart, country_code=country_code, account_number=account_number)
 
             # Save details to Log model
             log = Log(
@@ -160,11 +215,11 @@ class DeleteAccountView(View):
             created_by = delete_form.cleaned_data['created_by']
 
             # Get Account instance
-            account = get_object_or_404(Account, country_code=country_code, account_number=account_number)
+            account = get_object_or_404(AccountChart, country_code=country_code, account_number=account_number)
 
             # Checking if account is set up in Account model
             try:
-                account = Account.objects.get(country_code=country_code, account_number=account_number)
+                account = AccountChart.objects.get(country_code=country_code, account_number=account_number)
                 keep_subsidiary = account.keep_subsidiary
                 # Checking Keep Subsidiary value
                 if keep_subsidiary == 'Y':
@@ -172,7 +227,7 @@ class DeleteAccountView(View):
                                         '1) check account balances on subsidiary level <p>'
                                         '2) with 0.00 balances, change Keep Subsidiary parameter to N <p>'
                                         '3) resubmit request')
-            except Account.DoesNotExist:
+            except AccountChart.DoesNotExist:
                 return HttpResponse('Account does not exist')
             account.delete()
 
@@ -244,14 +299,17 @@ def account_add_upload(request):
         created_by = request.POST['created_by']
 
         # Check if account_number exists in Account model
-        if Account.objects.filter(account_number=account_number).exists():
+        if AccountChart.objects.filter(account_number=account_number).exists():
             return HttpResponse(f'Account {account_number} already exists. Check records')
 
         # Get current date
         current_date = datetime.now().date()
 
+        # Get the Currency object based on the currency code
+        currency = Currency.objects.get(currency=currency)
+
         # Save details to Account model
-        account = Account(
+        account = AccountChart(
             country_code=country_code,
             account_number=account_number,
             account_name=account_name,
@@ -287,7 +345,7 @@ def account_add_upload(request):
 
         return HttpResponse(f'Account {country_code}: {account_number} / {account_name} has been created')
     else:
-        return render(request, 'account_add_upload.html')
+        return render(request, 'upload_excel.html')
 
 
 def account_change_upload(request):
@@ -308,8 +366,8 @@ def account_change_upload(request):
 
         # Checking if account is set up in Account model
         try:
-            account = Account.objects.get(country_code=country_code, account_number=account_number)
-        except Account.DoesNotExist:
+            account = AccountChart.objects.get(country_code=country_code, account_number=account_number)
+        except AccountChart.DoesNotExist:
             return HttpResponse('Account does not exist')
 
         # If account is set up change Account name and save
@@ -362,7 +420,7 @@ def account_delete_upload(request):
 
         # Checking if account is set up in Account model
         try:
-            account = Account.objects.get(country_code=country_code, account_number=account_number)
+            account = AccountChart.objects.get(country_code=country_code, account_number=account_number)
             keep_subsidiary = account.keep_subsidiary
             # Checking Keep Subsidiary value
             if keep_subsidiary == 'Y':
@@ -370,7 +428,7 @@ def account_delete_upload(request):
                                     '1) check account balances on subsidiary level <p>'
                                     '2) with 0.00 balances, change Keep Subsidiary parameter to N <p>'
                                     '3) resubmit request')
-        except Account.DoesNotExist:
+        except AccountChart.DoesNotExist:
             return HttpResponse('Account does not exist')
         account.delete()
 
@@ -411,7 +469,7 @@ def account_delete_upload(request):
 def account_list(request):
     # User logged in
     if request.user.is_authenticated:
-        accounts = Account.objects.all()
+        accounts = AccountChart.objects.all()
         context = {'accounts': accounts}
         return render(request, 'account_list.html', context)
     # User not logged in

@@ -1,12 +1,5 @@
 from django.db import models
 
-# Create your models here.
-from django.db import models
-
-#do usuniecia
-class Maintenance(models.Model):
-    maintenance_type = models.CharField(max_length=50)
-
 
 class Currency(models.Model):
     currency = models.CharField(max_length=3, unique=True)
@@ -24,6 +17,16 @@ class Account(models.Model):
     # currency = models.ForeignKey(Currency, on_delete=models.CASCADE)
     currency = models.CharField(max_length=3)
     keep_subsidiary = models.CharField(max_length=1, default='N')
+
+
+class AccountChart(models.Model):
+    country_code = models.CharField(max_length=2)
+    account_number = models.IntegerField()
+    account_name = models.CharField(max_length=32)
+    currency = models.ForeignKey(Currency, on_delete=models.CASCADE)
+    # currency = models.CharField(max_length=3)
+    keep_subsidiary = models.CharField(max_length=1, default='N')
+
 
 class ExcelFile(models.Model):
     file = models.FileField(upload_to='excel_files')
