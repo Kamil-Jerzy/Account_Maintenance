@@ -10,6 +10,10 @@ import os
 
 
 class WelcomeView(View):
+    """
+    A class-based view that displays a form to select a maintenance type and redirects to
+    different views based on the selected option when the form is submitted.
+    """
     def get(self, request):
         maintenance_type = WelcomeForm()
         context = {'maintenance_type': maintenance_type}
@@ -29,6 +33,13 @@ class WelcomeView(View):
 
 
 class AddAccountView(View):
+    """
+    Class for adding an account.
+    The get method renders the  form and returns the context to the account_add.html template.
+    The post method saves account details and logs the details using the AccountChart and Log models, respectively.
+    It also checks if the balance option and mapping are compliant and notifies the user accordingly.
+    The method returns an HttpResponse message indicating if the account was successfully created or not.
+    """
     def get(self, request):
         add_form = AddAccountForm()
         context = {'add_form': add_form, }
@@ -42,11 +53,24 @@ class AddAccountView(View):
             account_number = add_form.cleaned_data['account_number']
             account_name = add_form.cleaned_data['account_name']
             currency = add_form.cleaned_data['currency']
+            print(currency)
             keep_subsidiary = add_form.cleaned_data['keep_subsidiary']
             requestor = add_form.cleaned_data['requestor']
             approver = add_form.cleaned_data['approver']
             additional_info = add_form.cleaned_data['additional_info']
             created_by = add_form.cleaned_data['created_by']
+            print(country_code,
+                  account_number,
+                  type(account_number),
+                  account_name,
+                  type(currency),
+                  keep_subsidiary,
+                  requestor,
+                  approver,
+                  additional_info,
+                  created_by
+                  )
+
 
             # Check if account_number exists in Account model
             if AccountChart.objects.filter(account_number=account_number).exists():
@@ -101,6 +125,11 @@ class AddAccountView(View):
 
 
 class ChangeAccountView(View):
+    """
+    A view for changing the name of an existing account.
+    It checks if account is set up in DB.
+    If yes, it changes account name and save operation in a Log.
+    """
     def get(self, request):
         change_form = ChangeAccountForm()
         context = {'change_form': change_form}
@@ -155,6 +184,11 @@ class ChangeAccountView(View):
 
 
 class DeleteAccountView(View):
+    """
+    A view for deleting an existing account.
+    It checks if account has Keep Subsidiary parameter on.
+    If yes, it notifies User to set it to No and then delete.
+    """
     def get(self, request):
         delete_form = DeleteAccountForm()
         context = {'delete_form': delete_form}
@@ -212,7 +246,14 @@ class DeleteAccountView(View):
             return render(request, 'account_delete_upload.html')
 
 
+# ------------- UPLOAD EXCEL VIEWS -------------
+
 def upload_excel(request):
+    """
+    This function takes HTTP request with an uploaded Excel file,
+    reads its contents, extracts specific data from it,
+    and redirects the user to a relevant HTML template based on the value of "maintenance_type" in the file.
+    """
     if request.method == 'POST':
         excel_file = request.FILES['excel_file']
         # Reading file content
@@ -243,6 +284,13 @@ def upload_excel(request):
 
 
 def account_add_upload(request):
+    """
+    This function handles a POST request for uploading account details from an HTML form,
+    checks if the account number already exists in the database, checks account mapping, saves the details to the AccountChart and Log models,
+    renames the last uploaded Excel file to include the account number and country code, and saves it to a local drive.
+    :param request: account details passed by Form
+    :return: account details in AccountChart and Log
+    """
     if request.method == 'POST':
         # Get details from account_add_upload.html
         maintenance_type = request.POST['maintenance_type']
@@ -322,6 +370,14 @@ def account_add_upload(request):
 
 
 def account_change_upload(request):
+    """
+    view function allows changing the account name and logging the changes made in the Log model,
+    with the updated information stored in the AccountChart model;
+    and it also renames and saves the last uploaded Excel file if there is any,
+    displaying a success message if the process is completed.
+    :param request: account details passed by Form
+    :return: updated account details in AccountChart and Log
+    """
     if request.method == 'POST':
         # Get details from account_change_upload.html
         maintenance_type = request.POST['maintenance_type']
@@ -378,6 +434,15 @@ def account_change_upload(request):
 
 
 def account_delete_upload(request):
+    """
+    This view deletes an account from the AccountChart model after checking if it exists,
+    and logs the details of the deletion while also checking
+    if there are any subsidiary accounts associated with the account being deleted,
+    and gives appropriate instructions if found,
+    and renames and saves the last uploaded Excel file with the account number and country code.
+    :param request: account details passed by Form
+    :return: updated account details in AccountChart and Log
+    """
     if request.method == 'POST':
         # Get details from account_add_upload.html
         maintenance_type = request.POST['maintenance_type']
@@ -438,6 +503,10 @@ def account_delete_upload(request):
 
 
 def account_list(request):
+    """
+    This view displays a list of all accounts in the AccountChart model if the user is logged in, and a message to log in if not.
+
+    """
     # User logged in
     if request.user.is_authenticated:
         accounts = AccountChart.objects.all()

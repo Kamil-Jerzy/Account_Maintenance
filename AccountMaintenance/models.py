@@ -35,6 +35,7 @@ class Log(models.Model):
     additional_info = models.CharField(max_length=64)
     created_by = models.CharField(max_length=64)
 
+
 class AccountOptions(models.Model):
     account_serial = models.IntegerField()
     account_type = models.CharField(max_length=3)

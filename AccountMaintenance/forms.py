@@ -18,15 +18,18 @@ KEEP_SUBS = (
     ('Y', 'Yes'),
     ('N', 'No'),
 )
-class WelcomeForm(forms.Form):
-    maintenance_type = forms.ChoiceField(label='Maintenance Type',
-                                         choices=MAINT_TYPE,
-                                         widget=forms.RadioSelect)
+
 
 def account_no_validator(value):
     if not (90000 <= value <= 94999):  # Sprawdzamy czy podana wartość nie mieści się w podanym pprzedziale
         # Jeśli dane nie są poprawne funkcja walidująca zawsze powinna podnieść wyjątek ValidationError
         raise ValidationError(f'Wartość {value} nie mieści się w przedziale od 90000 do 94999')
+
+
+class WelcomeForm(forms.Form):
+    maintenance_type = forms.ChoiceField(label='Maintenance Type',
+                                         choices=MAINT_TYPE,
+                                         widget=forms.RadioSelect)
 
 
 class AddAccountForm(forms.Form):
@@ -55,6 +58,7 @@ class ChangeAccountForm(forms.Form):
     approver = forms.CharField(label="Approver", max_length=32)
     additional_info = forms.CharField(label="Additional_info", max_length=64)
     created_by = forms.CharField(label="Created_by", max_length=64)
+
 
 class DeleteAccountForm(forms.Form):
     country_code = forms.ChoiceField(choices=COUNTRY, widget=forms.RadioSelect)
